@@ -43,6 +43,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.shrava.ui.components.LiveStats
+import com.example.shrava.ui.theme.AccentGreen
+import com.example.shrava.ui.theme.AccentRed
+import com.example.shrava.ui.theme.AccentOrange
+import com.example.shrava.ui.theme.DarkBg
+import com.example.shrava.ui.theme.TextMuted
 import com.example.shrava.ui.viewmodel.TrackingViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -60,17 +65,29 @@ fun TrackingScreen(
     }
 
     Scaffold(
+        containerColor = DarkBg,
         topBar = {
             TopAppBar(
-                title = { Text(state.activityType, fontWeight = FontWeight.Bold) },
+                title = {
+                    Text(
+                        state.activityType.uppercase(),
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 2.sp
+                    )
+                },
                 navigationIcon = {
-                    FilledIconButton(onClick = onBack) {
+                    FilledIconButton(
+                        onClick = onBack,
+                        colors = IconButtonDefaults.filledIconButtonColors(
+                            containerColor = MaterialTheme.colorScheme.surface
+                        )
+                    ) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    containerColor = DarkBg,
+                    titleContentColor = Color.White
                 )
             )
         }
@@ -81,7 +98,7 @@ fun TrackingScreen(
                 .padding(padding),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             AnimatedVisibility(
                 visible = state.isSearchingForGps,
@@ -116,11 +133,12 @@ fun TrackingScreen(
                 )
 
                 if (state.hasGpsFix && state.gpsAccuracy > 0f) {
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
                     Text(
-                        text = "GPS: ${state.gpsAccuracy.toInt()}m accuracy",
+                        text = "GPS ${state.gpsAccuracy.toInt()}m",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = TextMuted,
+                        letterSpacing = 1.sp
                     )
                 }
             }
@@ -135,30 +153,32 @@ fun TrackingScreen(
                 if (state.isPaused) {
                     FilledIconButton(
                         onClick = { viewModel.resumeTracking() },
-                        modifier = Modifier.size(64.dp),
+                        modifier = Modifier.size(72.dp),
                         colors = IconButtonDefaults.filledIconButtonColors(
-                            containerColor = MaterialTheme.colorScheme.primary
+                            containerColor = AccentGreen
                         )
                     ) {
                         Icon(
                             Icons.Default.PlayArrow,
                             contentDescription = "Resume",
-                            modifier = Modifier.size(32.dp)
+                            modifier = Modifier.size(36.dp),
+                            tint = Color.Black
                         )
                     }
                 } else {
                     FilledIconButton(
                         onClick = { viewModel.pauseTracking() },
-                        modifier = Modifier.size(64.dp),
+                        modifier = Modifier.size(72.dp),
                         colors = IconButtonDefaults.filledIconButtonColors(
-                            containerColor = MaterialTheme.colorScheme.secondary
+                            containerColor = Color.White.copy(alpha = 0.15f)
                         ),
                         enabled = state.hasGpsFix
                     ) {
                         Icon(
                             Icons.Default.Pause,
                             contentDescription = "Pause",
-                            modifier = Modifier.size(32.dp)
+                            modifier = Modifier.size(36.dp),
+                            tint = if (state.hasGpsFix) Color.White else TextMuted
                         )
                     }
                 }
@@ -168,16 +188,17 @@ fun TrackingScreen(
                         viewModel.stopTracking()
                         onTrackingStopped()
                     },
-                    modifier = Modifier.size(64.dp),
+                    modifier = Modifier.size(72.dp),
                     colors = IconButtonDefaults.filledIconButtonColors(
-                        containerColor = MaterialTheme.colorScheme.error
+                        containerColor = AccentRed
                     ),
                     enabled = state.hasGpsFix
                 ) {
                     Icon(
                         Icons.Default.Stop,
                         contentDescription = "Stop",
-                        modifier = Modifier.size(32.dp)
+                        modifier = Modifier.size(36.dp),
+                        tint = Color.White
                     )
                 }
             }
@@ -190,12 +211,12 @@ private fun GpsStatusBanner(
     accuracy: Float,
     modifier: Modifier = Modifier
 ) {
-    val accuracyText = if (accuracy > 0f) " (${accuracy.toInt()}m)" else ""
+    val accuracyText = if (accuracy > 0f) " · ${accuracy.toInt()}m" else ""
 
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(12.dp))
-            .background(Color(0xFFFF9800).copy(alpha = 0.15f))
+            .background(AccentOrange.copy(alpha = 0.12f))
             .padding(horizontal = 16.dp, vertical = 12.dp),
         contentAlignment = Alignment.Center
     ) {
@@ -205,15 +226,15 @@ private fun GpsStatusBanner(
         ) {
             Box(
                 modifier = Modifier
-                    .size(10.dp)
+                    .size(8.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFFFF9800))
+                    .background(AccentOrange)
             )
             Text(
-                text = "Searching for GPS signal$accuracyText...",
-                color = Color(0xFFFF9800),
+                text = "Searching for GPS signal$accuracyText",
+                color = AccentOrange,
                 fontWeight = FontWeight.Medium,
-                fontSize = 14.sp
+                fontSize = 13.sp
             )
         }
     }

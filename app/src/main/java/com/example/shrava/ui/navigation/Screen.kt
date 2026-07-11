@@ -5,6 +5,8 @@ sealed class Screen(val route: String) {
     data object Permission : Screen("permission")
     data object FirstLaunch : Screen("first_launch")
     data object MapDownload : Screen("map_download")
+    data object Coach : Screen("coach")
+    data object AiCoach : Screen("ai_coach")
     data object Tracking : Screen("tracking/{activityType}") {
         fun createRoute(activityType: String) = "tracking/$activityType"
     }

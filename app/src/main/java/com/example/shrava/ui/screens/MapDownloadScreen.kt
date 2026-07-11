@@ -1,10 +1,5 @@
 package com.example.shrava.ui.screens
 
-import android.Manifest
-import android.content.pm.PackageManager
-import android.os.Build
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,26 +9,29 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -42,11 +40,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.shrava.ui.theme.AccentGreen
+import com.example.shrava.ui.theme.AccentRed
+import com.example.shrava.ui.theme.DarkBg
+import com.example.shrava.ui.theme.DarkCard
+import com.example.shrava.ui.theme.DarkSurface
+import com.example.shrava.ui.theme.TextMuted
+import com.example.shrava.ui.theme.TextSecondary
 import com.example.shrava.ui.viewmodel.MapDownloadViewModel
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.BoundingBox
@@ -61,20 +67,25 @@ fun MapDownloadScreen(
     val downloadState by viewModel.downloadState.collectAsState()
     var zoomLevel by remember { mutableFloatStateOf(13f) }
     var currentBounds by remember { mutableStateOf<BoundingBox?>(null) }
-    val context = LocalContext.current
 
     Scaffold(
+        containerColor = DarkBg,
         topBar = {
             TopAppBar(
-                title = { Text("Map Downloads", fontWeight = FontWeight.Bold) },
+                title = { Text("MAP DOWNLOADS", fontWeight = FontWeight.Bold, letterSpacing = 1.sp) },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
+                    IconButton(
+                        onClick = onBack,
+                        colors = IconButtonDefaults.iconButtonColors(
+                            containerColor = DarkSurface
+                        )
+                    ) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    containerColor = DarkBg,
+                    titleContentColor = Color.White
                 )
             )
         }
@@ -86,9 +97,9 @@ fun MapDownloadScreen(
                 .padding(16.dp)
         ) {
             Text(
-                text = "Pan the map to select the area you want to download",
+                text = "Pan the map to select the area to download",
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = TextSecondary
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -122,8 +133,9 @@ fun MapDownloadScreen(
 
             Card(
                 modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+                    containerColor = DarkCard
                 )
             ) {
                 Column(
@@ -134,14 +146,22 @@ fun MapDownloadScreen(
                     Text(
                         text = "Zoom Level: ${zoomLevel.toInt()}",
                         style = MaterialTheme.typography.titleMedium,
+                        color = Color.White,
                         fontWeight = FontWeight.Bold
                     )
+
+                    Spacer(modifier = Modifier.height(8.dp))
 
                     Slider(
                         value = zoomLevel,
                         onValueChange = { zoomLevel = it },
                         valueRange = 10f..16f,
-                        steps = 5
+                        steps = 5,
+                        colors = SliderDefaults.colors(
+                            thumbColor = AccentGreen,
+                            activeTrackColor = AccentGreen,
+                            inactiveTrackColor = TextMuted
+                        )
                     )
 
                     Text(
@@ -156,7 +176,7 @@ fun MapDownloadScreen(
                             else -> ""
                         },
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = TextSecondary
                     )
                 }
             }
@@ -170,10 +190,11 @@ fun MapDownloadScreen(
             ) {
                 Text(
                     text = "Cache: ${viewModel.formatCacheSize(viewModel.getCacheSize())}",
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = TextSecondary
                 )
                 IconButton(onClick = { viewModel.clearCache() }) {
-                    Icon(Icons.Default.Delete, contentDescription = "Clear Cache")
+                    Icon(Icons.Default.Delete, contentDescription = "Clear Cache", tint = AccentRed)
                 }
             }
 
@@ -186,12 +207,15 @@ fun MapDownloadScreen(
                 ) {
                     LinearProgressIndicator(
                         progress = { downloadState.progress },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        color = AccentGreen,
+                        trackColor = DarkCard
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = downloadState.currentRegion,
-                        style = MaterialTheme.typography.bodySmall
+                        style = MaterialTheme.typography.bodySmall,
+                        color = TextSecondary
                     )
                 }
             } else {
@@ -202,7 +226,13 @@ fun MapDownloadScreen(
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
-                    enabled = currentBounds != null && !downloadState.isDownloading
+                    enabled = currentBounds != null,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = AccentGreen,
+                        contentColor = Color.Black,
+                        disabledContainerColor = TextMuted.copy(alpha = 0.3f),
+                        disabledContentColor = TextMuted
+                    )
                 ) {
                     Icon(Icons.Default.Download, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
@@ -215,7 +245,7 @@ fun MapDownloadScreen(
                 Text(
                     text = downloadState.message,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.primary
+                    color = AccentGreen
                 )
             }
         }

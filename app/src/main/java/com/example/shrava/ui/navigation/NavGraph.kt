@@ -8,6 +8,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.shrava.ui.screens.ActivityDetailScreen
+import com.example.shrava.ui.screens.AiCoachScreen
+import com.example.shrava.ui.screens.CoachScreen
 import com.example.shrava.ui.screens.HomeScreen
 import com.example.shrava.ui.screens.MapDownloadScreen
 import com.example.shrava.ui.screens.PermissionScreen
@@ -47,6 +49,20 @@ fun ShravaNavGraph(
 
         composable(Screen.MapDownload.route) {
             MapDownloadScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.Coach.route) {
+            CoachScreen(
+                onOpenAiCoach = {
+                    navController.navigate(Screen.AiCoach.route)
+                }
+            )
+        }
+
+        composable(Screen.AiCoach.route) {
+            AiCoachScreen(
                 onBack = { navController.popBackStack() }
             )
         }

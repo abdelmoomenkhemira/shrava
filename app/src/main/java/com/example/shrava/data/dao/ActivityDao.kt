@@ -21,4 +21,10 @@ interface ActivityDao {
 
     @Query("DELETE FROM activities WHERE id = :id")
     suspend fun deleteById(id: Long)
+
+    @Query("SELECT * FROM activities WHERE type = 'Run' AND distanceMeters >= 1000 ORDER BY avgPaceSecondsPerKm ASC LIMIT 1")
+    suspend fun getBestRun(): ActivityEntity?
+
+    @Query("SELECT * FROM activities WHERE type = 'Run' ORDER BY startTime DESC")
+    suspend fun getAllRuns(): List<ActivityEntity>
 }

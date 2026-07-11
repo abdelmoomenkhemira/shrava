@@ -2,15 +2,31 @@ package com.example.shrava.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Green80 = Color(0xFF4CAF50)
-val GreenGrey80 = Color(0xFF81C784)
-val Teal80 = Color(0xFF26A69A)
+// Dark backgrounds
+val DarkBg = Color(0xFF0D0D0D)
+val DarkSurface = Color(0xFF1A1A1A)
+val DarkCard = Color(0xFF242424)
+val DarkCardElevated = Color(0xFF2E2E2E)
 
-val Green40 = Color(0xFF388E3C)
-val GreenGrey40 = Color(0xFF66BB6A)
-val Teal40 = Color(0xFF00897B)
+// Accents
+val AccentGreen = Color(0xFF00E676)
+val AccentGreenDark = Color(0xFF00C853)
+val AccentOrange = Color(0xFFFF9100)
+val AccentRed = Color(0xFFFF5252)
+val AccentBlue = Color(0xFF448AFF)
+val AccentPurple = Color(0xFFB388FF)
 
-val DarkBackground = Color(0xFF121212)
-val DarkSurface = Color(0xFF1E1E1E)
-val LightBackground = Color(0xFFF5F5F5)
-val LightSurface = Color(0xFFFFFFFF)
+// Activity type colors
+val RunColor = AccentGreen
+val RideColor = AccentBlue
+val WalkColor = AccentOrange
+
+// Text
+val TextPrimary = Color(0xFFFFFFFF)
+val TextSecondary = Color(0xFF8A8A8E)
+val TextMuted = Color(0xFF555555)
+val TextOnAccent = Color(0xFF0D0D0D)
+
+// Gradients
+val GreenGradientStart = AccentGreen
+val GreenGradientEnd = AccentGreenDark

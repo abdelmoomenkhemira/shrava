@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -26,10 +27,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import com.example.shrava.ui.theme.AccentGreen
+import com.example.shrava.ui.theme.DarkBg
+import com.example.shrava.ui.theme.TextSecondary
 
 @Composable
 fun PermissionScreen(
@@ -58,22 +64,20 @@ fun PermissionScreen(
         }
     }
 
-    fun hasAllPermissions(): Boolean {
-        return requiredPermissions.all {
-            ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
-        }
-    }
-
     fun hasLocationPermission(): Boolean {
         return ContextCompat.checkSelfPermission(
             context, Manifest.permission.ACCESS_FINE_LOCATION
         ) == PackageManager.PERMISSION_GRANTED
     }
 
+    fun hasAllPermissions(): Boolean {
+        return requiredPermissions.all {
+            ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
+        }
+    }
+
     LaunchedEffect(Unit) {
-        if (hasAllPermissions()) {
-            onPermissionsGranted()
-        } else if (hasLocationPermission()) {
+        if (hasAllPermissions() || hasLocationPermission()) {
             onPermissionsGranted()
         } else {
             launcher.launch(requiredPermissions.toTypedArray())
@@ -91,7 +95,7 @@ fun PermissionScreen(
             imageVector = Icons.Default.LocationOn,
             contentDescription = null,
             modifier = Modifier.size(80.dp),
-            tint = MaterialTheme.colorScheme.primary
+            tint = AccentGreen
         )
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -99,7 +103,8 @@ fun PermissionScreen(
         Text(
             text = "Location Permission Required",
             style = MaterialTheme.typography.headlineMedium,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            color = Color.White
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -112,16 +117,22 @@ fun PermissionScreen(
             },
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = TextSecondary
         )
 
         Spacer(modifier = Modifier.height(32.dp))
 
         if (needsRationale) {
-            Button(onClick = {
-                needsRationale = false
-                launcher.launch(requiredPermissions.toTypedArray())
-            }) {
+            Button(
+                onClick = {
+                    needsRationale = false
+                    launcher.launch(requiredPermissions.toTypedArray())
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = AccentGreen,
+                    contentColor = Color.Black
+                )
+            ) {
                 Text("Try Again")
             }
         }

@@ -26,4 +26,8 @@ class ActivityRepository(
     suspend fun getLocationPoints(activityId: Long): List<LocationPointEntity> {
         return locationPointDao.getByActivityId(activityId)
     }
+
+    suspend fun getBestRun(): ActivityEntity? = activityDao.getBestRun()
+
+    suspend fun getAllRuns(): List<ActivityEntity> = activityDao.getAllRuns()
 }
