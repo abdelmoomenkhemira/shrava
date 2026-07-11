@@ -26,6 +26,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -39,6 +40,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.shrava.data.entity.ActivityEntity
 import com.example.shrava.ui.components.ActivityListItem
 import com.example.shrava.ui.components.ActivityTypePicker
+import com.example.shrava.ui.components.BottomNavBar
+import com.example.shrava.ui.components.BottomNavItem
 import com.example.shrava.ui.theme.AccentGreen
 import com.example.shrava.ui.theme.DarkBg
 import com.example.shrava.ui.theme.DarkSurface
@@ -51,11 +54,13 @@ fun HomeScreen(
     onStartActivity: (String) -> Unit,
     onActivityClick: (Long) -> Unit,
     onOpenMapDownload: () -> Unit,
+    onOpenCoach: () -> Unit,
     viewModel: HomeViewModel = viewModel()
 ) {
     val activities by viewModel.activities.collectAsState()
     var showTypePicker by remember { mutableStateOf(false) }
     var activityToDelete by remember { mutableStateOf<ActivityEntity?>(null) }
+    var selectedNav by remember { mutableIntStateOf(0) }
 
     Scaffold(
         containerColor = DarkBg,
@@ -87,6 +92,19 @@ fun HomeScreen(
                     )
                 }
             }
+        },
+        bottomBar = {
+            BottomNavBar(
+                selectedItem = BottomNavItem.entries[selectedNav],
+                onItemClick = { item ->
+                    val index = BottomNavItem.entries.indexOf(item)
+                    selectedNav = index
+                    when (item) {
+                        BottomNavItem.Coach -> onOpenCoach()
+                        else -> {}
+                    }
+                }
+            )
         },
         floatingActionButton = {
             FloatingActionButton(

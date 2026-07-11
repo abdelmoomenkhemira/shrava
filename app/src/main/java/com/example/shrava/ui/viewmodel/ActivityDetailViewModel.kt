@@ -1,21 +1,21 @@
 package com.example.shrava.ui.viewmodel
 
 import android.app.Application
-import android.content.ContentValues
-import android.os.Build
-import android.os.Environment
-import android.provider.MediaStore
+import android.content.Intent
+import android.net.Uri
+import androidx.core.content.FileProvider
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.shrava.data.ActivityRepository
 import com.example.shrava.data.AppDatabase
 import com.example.shrava.data.entity.ActivityEntity
 import com.example.shrava.data.entity.LocationPointEntity
-import com.example.shrava.util.GpxExporter
+import com.example.shrava.util.ActivityImageExporter
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.io.File
 
 class ActivityDetailViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -27,8 +27,11 @@ class ActivityDetailViewModel(application: Application) : AndroidViewModel(appli
     private val _points = MutableStateFlow<List<LocationPointEntity>>(emptyList())
     val points: StateFlow<List<LocationPointEntity>> = _points.asStateFlow()
 
-    private val _exportResult = MutableStateFlow<String?>(null)
-    val exportResult: StateFlow<String?> = _exportResult.asStateFlow()
+    private val _shareUri = MutableStateFlow<Uri?>(null)
+    val shareUri: StateFlow<Uri?> = _shareUri.asStateFlow()
+
+    private val _toastMessage = MutableStateFlow<String?>(null)
+    val toastMessage: StateFlow<String?> = _toastMessage.asStateFlow()
 
     init {
         val db = AppDatabase.getInstance(application)
@@ -42,42 +45,35 @@ class ActivityDetailViewModel(application: Application) : AndroidViewModel(appli
         }
     }
 
-    fun exportToGpx() {
+    fun shareActivityImage() {
         viewModelScope.launch {
             val act = _activity.value ?: return@launch
             val pts = _points.value
+            if (pts.size < 2) {
+                _toastMessage.value = "Not enough GPS points to generate image"
+                return@launch
+            }
             try {
-                val gpxContent = GpxExporter.generateGpx(act, pts)
-                val fileName = "shrava_${act.type}_${act.startTime}.gpx"
-
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    val resolver = getApplication<Application>().contentResolver
-                    val contentValues = ContentValues().apply {
-                        put(MediaStore.Downloads.DISPLAY_NAME, fileName)
-                        put(MediaStore.Downloads.MIME_TYPE, "application/gpx+xml")
-                        put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
-                    }
-                    val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
-                    uri?.let {
-                        resolver.openOutputStream(it)?.use { stream ->
-                            stream.write(gpxContent.toByteArray())
-                        }
-                    }
-                } else {
-                    val downloadsDir = Environment.getExternalStoragePublicDirectory(
-                        Environment.DIRECTORY_DOWNLOADS
-                    )
-                    java.io.File(downloadsDir, fileName).writeText(gpxContent)
-                }
-                _exportResult.value = "Exported: $fileName"
+                val context = getApplication<Application>()
+                val file = ActivityImageExporter.generate(context, act, pts)
+                val uri = FileProvider.getUriForFile(
+                    context,
+                    "${context.packageName}.fileprovider",
+                    file
+                )
+                _shareUri.value = uri
             } catch (e: Exception) {
-                _exportResult.value = "Export failed: ${e.message}"
+                _toastMessage.value = "Failed to generate image: ${e.message}"
             }
         }
     }
 
-    fun clearExportResult() {
-        _exportResult.value = null
+    fun clearShareUri() {
+        _shareUri.value = null
+    }
+
+    fun clearToastMessage() {
+        _toastMessage.value = null
     }
 
     fun deleteActivity(activityId: Long) {

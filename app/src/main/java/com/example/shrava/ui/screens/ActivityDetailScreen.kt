@@ -1,5 +1,6 @@
 package com.example.shrava.ui.screens
 
+import android.content.Intent
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -56,6 +57,8 @@ import com.example.shrava.ui.theme.TextMuted
 import com.example.shrava.ui.theme.TextSecondary
 import com.example.shrava.ui.viewmodel.ActivityDetailViewModel
 import com.example.shrava.util.LocationUtils
+import org.osmdroid.util.BoundingBox
+import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Polyline
 import java.text.SimpleDateFormat
@@ -71,7 +74,8 @@ fun ActivityDetailScreen(
 ) {
     val activity by viewModel.activity.collectAsState()
     val points by viewModel.points.collectAsState()
-    val exportResult by viewModel.exportResult.collectAsState()
+    val shareUri by viewModel.shareUri.collectAsState()
+    val toastMessage by viewModel.toastMessage.collectAsState()
     var showDeleteDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
@@ -79,10 +83,22 @@ fun ActivityDetailScreen(
         viewModel.loadActivity(activityId)
     }
 
-    LaunchedEffect(exportResult) {
-        exportResult?.let {
+    LaunchedEffect(toastMessage) {
+        toastMessage?.let {
             Toast.makeText(context, it, Toast.LENGTH_LONG).show()
-            viewModel.clearExportResult()
+            viewModel.clearToastMessage()
+        }
+    }
+
+    LaunchedEffect(shareUri) {
+        shareUri?.let { uri ->
+            val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                type = "image/png"
+                putExtra(Intent.EXTRA_STREAM, uri)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            context.startActivity(Intent.createChooser(shareIntent, "Share Activity"))
+            viewModel.clearShareUri()
         }
     }
 
@@ -102,8 +118,8 @@ fun ActivityDetailScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { viewModel.exportToGpx() }) {
-                        Icon(Icons.Default.Share, contentDescription = "Export GPX", tint = TextSecondary)
+                    IconButton(onClick = { viewModel.shareActivityImage() }) {
+                        Icon(Icons.Default.Share, contentDescription = "Share", tint = TextSecondary)
                     }
                     IconButton(onClick = { showDeleteDialog = true }) {
                         Icon(Icons.Default.Delete, contentDescription = "Delete", tint = AccentRed)
@@ -148,7 +164,7 @@ fun ActivityDetailScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Map
+                // Map with auto-zoom
                 AndroidView(
                     factory = { ctx ->
                         MapView(ctx).apply {
@@ -156,23 +172,19 @@ fun ActivityDetailScreen(
                             overlays.removeAll { it is Polyline }
 
                             if (points.size >= 2) {
+                                val geoPoints = points.map { GeoPoint(it.latitude, it.longitude) }
+
                                 val polyline = Polyline().apply {
                                     outlinePaint.color = android.graphics.Color.parseColor("#00E676")
                                     outlinePaint.strokeWidth = 8f
-                                    setPoints(
-                                        points.map { point ->
-                                            org.osmdroid.util.GeoPoint(point.latitude, point.longitude)
-                                        }
-                                    )
+                                    setPoints(geoPoints)
                                 }
                                 overlays.add(polyline)
 
-                                if (points.isNotEmpty()) {
-                                    val lastPoint = points.last()
-                                    controller?.setCenter(
-                                        org.osmdroid.util.GeoPoint(lastPoint.latitude, lastPoint.longitude)
-                                    )
-                                    controller?.setZoom(15.0)
+                                // Auto-zoom to fit entire route
+                                val bbox = BoundingBox.fromGeoPoints(geoPoints)
+                                post {
+                                    zoomToBoundingBox(bbox, true, 50)
                                 }
                             }
                         }
@@ -218,7 +230,7 @@ fun ActivityDetailScreen(
                 Spacer(modifier = Modifier.height(20.dp))
 
                 FilledTonalButton(
-                    onClick = { viewModel.exportToGpx() },
+                    onClick = { viewModel.shareActivityImage() },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp),
@@ -229,7 +241,7 @@ fun ActivityDetailScreen(
                 ) {
                     Icon(Icons.Default.Share, contentDescription = null, tint = AccentGreen)
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text("Export as GPX")
+                    Text("Share Activity")
                 }
 
                 Spacer(modifier = Modifier.height(32.dp))

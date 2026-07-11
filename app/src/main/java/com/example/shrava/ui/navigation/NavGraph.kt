@@ -43,6 +43,9 @@ fun ShravaNavGraph(
                 },
                 onOpenMapDownload = {
                     navController.navigate(Screen.MapDownload.route)
+                },
+                onOpenCoach = {
+                    navController.navigate(Screen.Coach.route)
                 }
             )
         }
